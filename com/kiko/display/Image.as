@@ -17,6 +17,11 @@
 		private var centered:Boolean;
 		//
 		//
+		/**
+		 * @param	source Pfad zur Datei, die geladen werden soll, zB: (.swf, .jpg, .png, .mov)
+		 * @param	onComplete Funktion die bei fertig geladener Datei aufgerufen wird.
+		 * @param	centered Bestimmt ob das Bild eingemittet wird. Hilfreich zum mittig platzieren oder rotieren.
+		 */
 		public function Image(source:String, onComplete:Function, centered:Boolean = false):void
 		{
 			loader = new Loader();

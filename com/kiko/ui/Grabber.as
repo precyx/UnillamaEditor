@@ -1,6 +1,7 @@
 package com.kiko.ui
 {
 	// adobe
+	import com.kiko.ui.buttons.IconButton;
 	import flash.display.Sprite
 	//
 	// own
@@ -8,14 +9,20 @@ package com.kiko.ui
 	public class Grabber extends Sprite
 	{
 		// data
-		public var numButtons:uint = 0;
-		public var contentWidth:Number = 8;
-		public var stack:Array;
+		public var startX:Number = 8;
+		public var buttons:Array;
 		//
 		//
-		public function Grabber():void
-		{
-			stack = new Array();
+		public function Grabber():void{
+			buttons = new Array();
+		}
+		
+		//publics
+		public function addButton(but:IconButton):void {
+			buttons.push(but);
+		}
+		public function get numButtons():uint {
+			return buttons.length;
 		}
 	}//end-class
 }//end-pack

@@ -1,7 +1,9 @@
 ﻿package com.kiko.ui
 {
 	/**
-	 * Version 1.03
+	 * Version 1.04
+	 * todo:
+		 * kommastellige Zahlen unterstützen
 	 */
 	// adobe
 	import com.kiko.display.Image;
@@ -23,7 +25,7 @@
 	public class Slider extends Sprite
 	{
 		// data
-		private var value:Number;
+		private var _value:Number;
 		//
 		// graphics
 		private var line:Sprite;
@@ -34,8 +36,10 @@
 		private var dragRect:Rectangle;
 		//
 		//
-		public function Slider(stage:Stage, text:String, minVal:int, maxVal:int, startVal:int, width:uint ):void
+		public function Slider(stage:Stage, text:String, minVal:int, maxVal:int, startVal:int, showValueLimits:Boolean, width:uint ):void
 		{
+			if (startVal < minVal) startVal = minVal;
+			if (startVal > maxVal) startVal = maxVal;
 			
 			line = new Sprite();
 			line.graphics.lineStyle(1, 0x999999, 1, false, LineScaleMode.NONE, CapsStyle.SQUARE);
@@ -99,7 +103,7 @@
 			grabber.graphics.drawCircle(0, 0, 8);
 			addChild(grabber);
 			grabber.y = 25;
-			grabber.x = 8;
+			grabber.x = 8 + (startVal - minVal) / (maxVal - minVal) * (line.width - 16);
 			updateGrabber(active, grabber, line, valuetf, text, format2, minVal, maxVal);
 			grabber.buttonMode = true;
 			dragRect = new Rectangle(8, 25, width - 15, 0);
@@ -118,12 +122,7 @@
 				updateGrabber(active, grabber, line, valuetf, text, format2, minVal, maxVal);
 			});
 			
-			//test loop
-			addEventListener(Event.ENTER_FRAME, function() {
-				//trace(grabber.hasEventListener(Event.ENTER_FRAME));
-				//trace(value);
-			});
-
+			this.valueLimits = showValueLimits;
 		}
 		// privates
 		private function updateGrabber(active, grabber, line, valuetf, text, format2, minVal, maxVal):void {
@@ -131,7 +130,7 @@
 			active.graphics.lineStyle(1, 0x8ee800, 1, false, "normal", CapsStyle.SQUARE);
 			active.graphics.moveTo(0, 0);
 			active.graphics.lineTo(grabber.x, 0);
-			value = Math.round((grabber.x - 8) / (line.width - 16) * (maxVal - minVal) + minVal);
+			_value = Math.round((grabber.x - 8) / (line.width - 16) * (maxVal - minVal) + minVal);
 			valuetf.text = text + ": " +String(value);
 			valuetf.setTextFormat(format2);
 		}
@@ -142,7 +141,16 @@
 			maxtf.x = line.width - maxtf.width;
 			dragRect = new Rectangle(8, 25, line.width - 15, 0);
 		}
-
+		public function get value():Number {
+			return _value;
+		}
+		/**
+		 * Definiert, ob die Wert-Begrenzungs Textfelder angezeigt werden.
+		 */
+		public function set valueLimits(bool:Boolean):void {
+			this.mintf.visible = bool;
+			this.maxtf.visible = bool;
+		}
 		
 	}//end-class
 }//end-pack
