@@ -57,7 +57,7 @@
 			active.x = 0;
 			active.y = 25;
 			
-			var format:TextFormat = new TextFormat("Arial", 12, 0x999999);
+			var format:TextFormat = new TextFormat("Segoe UI", 12, 0x999999);
 			var format2:TextFormat = new TextFormat("Arial", 12, 0x656565);
 			
 			var valuetf:TextField = new TextField();
@@ -137,9 +137,10 @@
 		
 		// getters/setters
 		override public function set width (value:Number) : void {
-			line.width = value;
-			maxtf.x = line.width - maxtf.width;
-			dragRect = new Rectangle(8, 25, line.width - 15, 0);
+			//line.width = value;
+			//maxtf.x = line.width - maxtf.width;
+			//dragRect = new Rectangle(8, 25, line.width - 15, 0);
+			
 		}
 		public function get value():Number {
 			return _value;

@@ -24,6 +24,7 @@ package com.kiko.ui.buttons
 		private var toggler:Sprite;
 		private var active:Sprite;
 		private var active_icon:Image;
+		private var tf:TextField;
 		//
 		//
 		public function ToggleButton(text:String):void
@@ -53,7 +54,7 @@ package com.kiko.ui.buttons
 			
 			
 			var format:TextFormat = new TextFormat("Arial", 12, 0x656565);
-			var tf:TextField = new TextField();
+			tf = new TextField();
 			tf.text = text;
 			addChild(tf);
 			tf.setTextFormat(format);
@@ -99,6 +100,10 @@ package com.kiko.ui.buttons
 		// getters setters
 		public function get toggleOn():Boolean {
 			return _toggleOn;
+		}
+		override public function set width (value:Number) : void {
+		}
+		override public function set height(value:Number):void {
 		}
 		
 		

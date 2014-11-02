@@ -93,7 +93,6 @@ package com.kiko.ui
 			confirmButton.addEventListener(MouseEvent.CLICK, function() {
 				confirm = false;
 				value = Number(value_tf.text);
-				trace("click confirm");
 			});
 			
 			format = new TextFormat("Arial", 12, 0x656565);
@@ -131,7 +130,6 @@ package com.kiko.ui
 			upButton.addEventListener(MouseEvent.MOUSE_OUT, outButton);
 			upButton.addEventListener(MouseEvent.CLICK, function() {
 				value += stepVal;
-				trace(_value);
 			});
 			downButton = new IconButton("resources/swf/down_icon.swf", function(){
 				downButton.x = bg.width - downButton.width-1;
