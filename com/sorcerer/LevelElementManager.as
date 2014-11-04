@@ -1,21 +1,25 @@
 ﻿package com.sorcerer {
 	/**
-	 * LevelElementManager V1.03
+	 * LevelElementManager V1.04
 	 * 
 	 * @todo
-	 * Multiselect auswahl, kopieren, löschen, bewegen OK
-	 * Multiselect pixelgenau
-	 * Multiselect alle seiten
+	 * Multiselect auswahl, kopieren, löschen, bewegen [OK]
+	 * Multiselect pixelgenau [OK]
+	 * Multiselect alle seiten [OK]
+	 * Multi drag & drop
 	 * move stage tool
 	 * tool box
 	 * text menu
 	 * zindex elements
 	 * levelelement korrekter zindex bei import & export
 	 * eigene multidrag klasse/funktionalität
-	 * 
+	 * UI immer zu vorderst
+	 * BoxManager, der actives der boxen regelt
 	 */
 	//
 	import com.kiko.display.Rect;
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.display.DisplayObject;
@@ -58,7 +62,15 @@
 		private function eventListeners():void {
 			stage.addEventListener(MouseEvent.MOUSE_UP, function mouseUp(e:MouseEvent) {
 				//stage.removeEventListener(Event.ENTER_FRAME, loop);
-				setSelection();
+				
+				if(e.target is Stage){
+					for each( var elem1:LevelElement in graphicArray ) {
+					elem1.active = false;
+					}
+					selection.clearElementSelection();
+				}
+				//
+				checkSelection();
 				focus = null;
 				selection.clearPreSelection();
 			});
@@ -66,10 +78,6 @@
 				focus = (e.target as DisplayObject);
 				if (e.target is Stage) {
 					selection.startClickPoint = new Point(stage.mouseX, stage.mouseY);
-					for each( var elem1:LevelElement in graphicArray ) {
-						elem1.active = false;
-					}
-					selection.clearElementSelection();
 				}
 				stage.addEventListener(Event.ENTER_FRAME, loop);
 			});
@@ -171,19 +179,19 @@
 			return data;
 		}
 		/**
-		 * Setzt eine Vorauswahl zum selektieren von Elementen
+		 * Schaut welche Elemente von der PreSelection betroffen sind und setzt diese active.
 		 */
-		private function setSelection():void {
-			var selectionRect:Rectangle = new Rectangle(
-			selection.preSelection.x, 
-			selection.preSelection.y,
-			selection.preSelection.width,
-			selection.preSelection.height);
-			if(selectionRect.width > 5 && selectionRect.height > 5){
+		private function checkSelection():void {
+			var selectionRect:Rectangle = selection.getPreSelection();
 			for each ( var elem:LevelElement in graphicArray ) {
 				var elemBounds:Rectangle = elem.getRect(stage);
-				if ( elemBounds.intersects( selectionRect) ) elem.active = true;
-			}
+				var bitmapData:BitmapData = new BitmapData( elem.width, elem.height, true, 0 );
+				bitmapData.draw(elem);
+				if ( bitmapData.hitTest( new Point(elem.x, elem.y), 255, selectionRect, new Point(selectionRect.x, selectionRect.y), 255) ) {
+					elem.active = true;
+				}
+				// faster bounding box collision detection
+				//if ( elemBounds.intersects( selectionRect) ) elem.active = true;
 			}
 		}
 		
@@ -196,16 +204,16 @@
 		 */
 		private function loop(e:Event):void {
 			
-			//preselection
+			//draw preselection
 			if (focus is Stage) {
 				stage.setChildIndex( selection.preSelection, stage.numChildren - 1);
 				selection.drawPreSelection( 
-				selection.startClickPoint.x, 
-				selection.startClickPoint.y,
-				stage.mouseX - selection.startClickPoint.x,
-				stage.mouseY - selection.startClickPoint.y);
+				Math.min(selection.startClickPoint.x, stage.mouseX), 
+				Math.min(selection.startClickPoint.y, stage.mouseY),
+				Math.abs(stage.mouseX - selection.startClickPoint.x),
+				Math.abs(stage.mouseY - selection.startClickPoint.y) );
 			}
-			//element-selection
+			//draw element-selection
 			if ( getActiveGraphicElements().length) {
 				stage.setChildIndex( selection.elementSelection, stage.numChildren-1);
 				var bounds:Rectangle = new Rectangle();
