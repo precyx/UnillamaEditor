@@ -13,8 +13,8 @@ package com.kiko.ui.buttons
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
-	//import com.greensock.*;
-	//import com.greensock.easing.*;
+	import com.greensock.*;
+	import com.greensock.easing.*;
 	//
 	// own
 	import com.kiko.display.Rect;
@@ -71,25 +71,26 @@ package com.kiko.ui.buttons
 			var me:TextButton = this;
 			hit.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent) {
 			// tweenlite
-			/*TweenLite.to(me, 0.3, { _hoverAlpha:1, ease:Circ.easeOut, onUpdate:function() {
-				drawBg(hoverColor, hoverColor, _hoverAlpha);
+			TweenLite.to(me, 0.3, { bgAlpha:1, ease:Circ.easeOut, onUpdate:function() {
+				drawBg();
 			} } );
-			tf.textColor = 0xffffff;*/
+			tf.textColor = 0xffffff;
+			
 			bgColor = hoverColor;
-			bgAlpha = 1;
-			drawBg();
+			//bgAlpha = 1;
+			//drawBg();
 			tf.textColor = 0xFFFFFF;
 			});
 			hit.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent) {
 				// tweenlite
-				/*TweenLite.killTweensOf(me);
-				TweenLite.to(me, 0.5, { _hoverAlpha:0, ease:Circ.easeOut, onUpdate:function() {
-					drawBg(hoverColor, hoverColor, _hoverAlpha);
+				TweenLite.killTweensOf(me);
+				TweenLite.to(me, 0.3, { bgAlpha:0, ease:Circ.easeOut, onUpdate:function() {
+					drawBg();
 				} } );
-				tf.textColor = textColor;*/
-				bgColor = 0xFFFFFF;
-				bgAlpha = 0;
-				drawBg();
+				tf.textColor = textColor;
+				//bgColor = 0xFFFFFF;
+				//bgAlpha = 0;
+				//drawBg();
 				tf.textColor = textColor;
 			});
 		}
