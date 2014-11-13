@@ -7,8 +7,9 @@
 	 * Multiselect pixelgenau [OK]
 	 * Multiselect alle seiten [OK]
 	 * Multi drag & drop [OK] -> bugs
-	 * move stage tool
 	 * tool box
+	 * move stage tool
+	 * collision rect und cirlce tool
 	 * text menu
 	 * ViewManager der z-index probleme löst.
 	 * levelelement korrekter zindex bei import & export
@@ -23,10 +24,20 @@
 	 * mehrmals aufs gleiche element klicken, füllt den activeArray immer mehr [OK]
 	 * bei mehrerern einzelnen auswahlen werden die zusammengezählt, es sollte aber einzelauswahlen geben [OK]
 	 * beim dragen kann man nicht dublizieren
-	 * bei einer multiselection wird bei anschliessender singleselection diese zur multiselection zusammengefügt.
+	 * bei einer multiselection wird bei anschliessender singleselection diese zur multiselection zusammengefügt. [OK]
+	 * beim gehaltenen dublizieren werden zu viele elemente geklont.
 	 * 
-	 * @performance
-	 * aktive elemente in einen array laden, und bei auswahl aufhebung nur die aktiven entwählen, nicht alle [OK]
+	 * 
+	 * 
+	 * @features[DONE]
+	 * Pixelgenaure Multiauswahl
+	 * Elemente klonen
+	 * Elemente löschen
+	 * Elemente Z-Index
+	 * Alle Element bewegen mit Space und MausDown
+	 * Export in Array
+	 * Import und Level-Generierung
+	 * 
 	 */
 	//
 	import com.kiko.display.Rect;
@@ -44,6 +55,8 @@
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.ui.Keyboard;
+	import flash.ui.Mouse;
+	import flash.ui.MouseCursor;
 	import flash.display.Stage;
 	import com.sorcerer.LevelElement;
 	import flash.utils.getDefinitionByName;
@@ -58,6 +71,10 @@
 		public var collisionArray:Array;
 		public var activeArray:Array;
 		//
+		// flags
+		private var keys:Object = { };
+		private var mouseDown:Boolean;
+		//
 		// graphics
 		private var selection:Selection;
 		private var focus:DisplayObject; // Definiert, welcher Typ als letztes angeklick wurde. (Stage, LevelElement)
@@ -68,6 +85,9 @@
 			graphicArray = new Array();
 			collisionArray = new Array();
 			activeArray = new Array();
+			//
+			keys = { };
+			keys[Keyboard.SPACE] = false;
 			//
 			selection = new Selection(stage);
 			selection.startClickPoint = new Point();
@@ -84,14 +104,25 @@
 				// clear preselection
 				selection.clearPreSelection();
 				focus = null;
+				mouseDown = false;
 			});
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, function mouseDown(e:MouseEvent) {
 				focus = (e.target as DisplayObject);
 				selection.startClickPoint = new Point(stage.mouseX, stage.mouseY);
 				stage.addEventListener(Event.ENTER_FRAME, loop);
+				mouseDown = true;
+				// @feature all element drag
+				// x, y von jedem element zwischenspeichern
+				if( keys[Keyboard.SPACE]){
+					for each( var elem:LevelElement in graphicArray) {
+						elem.startDragElementPoint = new Point( elem.x, elem.y);
+					}
+				}
 			});
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, function keydown(e:KeyboardEvent) {
 				var elem:LevelElement;
+				keys[e.keyCode] = true;
+				//duplicate
 				if (e.keyCode == Keyboard.D) {
 					if (activeArray.length) {
 						for each( elem in activeArray ) {
@@ -100,6 +131,7 @@
 						}
 					}
 				}
+				// rotate
 				if (e.keyCode == Keyboard.O) {
 					for each( elem in graphicArray ) {
 						if(elem.active) elem.scaleX -= 0.02;
@@ -112,6 +144,7 @@
 						if(elem.active) elem.scaleY += 0.02;
 					}
 				}
+				//delete
 				if (e.keyCode == Keyboard.DELETE || e.keyCode == Keyboard.E) {
 					for each( elem in activeArray ) {
 						removeGraphicElement( elem );
@@ -119,6 +152,7 @@
 					activeArray = [];
 					selection.clearElementSelection();
 				}
+				//zindex
 				if (e.keyCode == Keyboard.B) {
 					for each( elem in activeArray) {
 						var index:uint = stage.getChildIndex(elem);
@@ -131,6 +165,7 @@
 						if( index2+1 < stage.numChildren ) stage.setChildIndex(elem, stage.getChildIndex(elem) + 1);
 					}
 				}
+				// move
 				if(activeArray.length) {
 					if (e.keyCode == Keyboard.LEFT) {
 						for each( elem in activeArray ) {
@@ -153,6 +188,15 @@
 						}
 					}
 				}
+				// space
+				if (e.keyCode == Keyboard.SPACE ) {
+					Mouse.cursor = MouseCursor.HAND;
+					selection.clearElementSelection();				
+				}
+			});
+			stage.addEventListener(KeyboardEvent.KEY_UP, function(e:KeyboardEvent) {
+				keys[e.keyCode] = false;
+				Mouse.cursor = MouseCursor.AUTO;
 			});
 		}
 		
@@ -169,15 +213,19 @@
 			var me:LevelElementManager = this;
 			var elem:LevelElement;
 			element.addEventListener(MouseEvent.MOUSE_DOWN, function mouseDown(e:MouseEvent) {
-				// single selection
-				if (activeArray.length == 1) {
+				// different selection
+				var sameSelection:Boolean;
+				for each( elem in activeArray) {
+					if (elem == element) sameSelection = true;
+				}
+				if (!sameSelection) {
 					for each(elem in activeArray) {
 						elem.active = false;
 					}
 					activeArray = [];
 				}
 				// no double selection
-				if(!element.active){
+				if(!element.active && !keys[Keyboard.SPACE]){
 					element.active = true;
 					activeArray.push(element);
 				}
@@ -252,9 +300,8 @@
 		 */
 		private function loop(e:Event):void {
 			
-			//draw preselection
-			if (focus is Stage) {
-				//trace("focus - stage");
+			//@feature - draw preselection
+			if (focus is Stage && !keys[Keyboard.SPACE]) {
 				stage.setChildIndex( selection.preSelection, stage.numChildren - 1);
 				selection.drawPreSelection( 
 				Math.min(selection.startClickPoint.x, stage.mouseX), 
@@ -262,14 +309,22 @@
 				Math.abs(stage.mouseX - selection.startClickPoint.x),
 				Math.abs(stage.mouseY - selection.startClickPoint.y) );
 			}
-			//draw element-selection
-			if ( activeArray.length) {
+			//@feature - draw element-selection
+			if ( activeArray.length && !keys[Keyboard.SPACE]) {
 				stage.setChildIndex( selection.elementSelection, stage.numChildren-1);
 				var bounds:Rectangle = new Rectangle();
 				for each ( var elem:LevelElement in activeArray ) {
 					bounds = bounds.union( elem.getBounds(stage) );
 				}
 				selection.drawElementSelection(bounds.x, bounds.y, bounds.width, bounds.height);
+			}
+			
+			//move elements
+			if (keys[Keyboard.SPACE] && mouseDown) {
+				for each ( var elem:LevelElement in graphicArray) {
+					elem.x = stage.mouseX - (selection.startClickPoint.x - elem.startDragElementPoint.x);
+					elem.y = stage.mouseY - (selection.startClickPoint.y - elem.startDragElementPoint.y);
+				}
 			}
 		}
 		/**
